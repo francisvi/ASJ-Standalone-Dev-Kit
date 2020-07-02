@@ -24,8 +24,26 @@ public class Point {
         double d=Math.pow(dx,2)+Math.pow(dy,2);
         double distance=Math.sqrt(d);
         return distance;
-
     }
+    public String getQuadrant(){
+        if (x>0 && y>0){
+            return "Quadrant 1";
+        }
+        if (x<0 && y>0) {
+            return "Quadrant 2";
+        }
+        if (x<0 && y<0) {
+            return "Quadrant 3";
+        }
+        if (x>0 && y<0) {
+            return "Quadrant 4";
+        }
+        if (x==0 || y==0) {
+            return "Axis";
+        }
+        return null;
+    }
+
     public double getX() {
         return x;
     }
