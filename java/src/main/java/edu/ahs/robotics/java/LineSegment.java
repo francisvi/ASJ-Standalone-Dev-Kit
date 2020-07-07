@@ -3,12 +3,20 @@ package edu.ahs.robotics.java;
 public class LineSegment {
     private Point point1;
     private Point point2;
+    private double deltaX;
+    private double deltaY;
+    private double slope;
+
 
     public LineSegment(Point point1, Point point2) {
         this.point1 = point1;
         this.point2 = point2;
+        deltaX=point2.getX()-point1.getX();
+        deltaY=point2.getY()-point1.getY();
     }
 
+
+    /*
     public Point[] subDivide(int subSegments){
         //get the change in x and y between the two points.
         double deltaX=point2.getX()-point1.getX();
@@ -33,5 +41,28 @@ public class LineSegment {
         //my array of endpoints of the line segment pieces is returned.
         return subSegCoordinates;
 
+
+    }
+
+     */
+
+
+    //this method calculates the x and y coordinates of a targetPoint the line segment object.
+    //if the slope is infinite, AKA deltaX=0, then it simply moves up the vertical line by the
+    //total distance.
+    public Point interpolate (double targetDistance){
+
+        if (deltaX != 0){
+            double targetPointX=targetDistance*Math.cos(Math.atan(deltaY/deltaX))+point1.getX();
+            double targetPointY=targetDistance*Math.sin(Math.atan(deltaY/deltaX))+point1.getY();
+            Point interpolatedPoint = new Point (targetPointX,targetPointY);
+            return interpolatedPoint;
+        }
+        else {
+            double targetPointX=point1.getX();
+            double targetPointY=targetDistance+point1.getY();
+            Point interpolatedPoint = new Point (targetPointX,targetPointY);
+            return interpolatedPoint;
+        }
     }
 }
