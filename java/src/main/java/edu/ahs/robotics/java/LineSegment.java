@@ -5,7 +5,7 @@ public class LineSegment {
     private Point point2;
     private double deltaX;
     private double deltaY;
-    private double slope;
+
 
 
     public LineSegment(Point point1, Point point2) {
@@ -16,11 +16,9 @@ public class LineSegment {
     }
 
 
-    /*
+
     public Point[] subDivide(int subSegments){
-        //get the change in x and y between the two points.
-        double deltaX=point2.getX()-point1.getX();
-        double deltaY=point2.getY()-point1.getY();
+
         //get the amount x needs to change to take you from point 1 to the first
         //x-coordinante a point point on the subsegement of the line.
         double moveX=deltaX/subSegments;
@@ -31,7 +29,7 @@ public class LineSegment {
         Point subSegCoordinates[]=new Point[subSegments-1];
         //run a for loop that populates our array with points.  Note that each element
         //in the array is itself a Point that needs to be created.  I use the
-        //getX method of Class Point in order to get the x coordinatne of the end
+        //getX method of Class Point in order to get the x coordinate of the end
         //points of the line and then the moveX value to add to the amount x needs
         //to change by to take us to the endpoint of a segment.  I need to multiply the
         //move value of i+1 so that if I am on the second, or third, time through the loop,
@@ -43,8 +41,6 @@ public class LineSegment {
 
 
     }
-
-     */
 
 
     //this method calculates the x and y coordinates of a targetPoint the line segment object.

@@ -76,8 +76,301 @@ public class Path {
      * @return a point at the supplied distance along the path from the supplied current position
      * Note that the point will usually be interpolated between the points that originally defined the Path
      */
-    //looks unfinished.
-    //public Path.WayPoint targetPoint(Point current, double distance) {
+        //current is the current location of the robot.  distance is the look ahead distance.
+        //counter is an incrementer.  The for loop below runs until the value of component
+        //along path for the current point is a positive number.  Any points behind the
+        //robot will have negative componentAlongPath values.
+    public Path.WayPoint targetPoint(Point current, double targetDistance) {
+        int counter = 0;
+        for (int i = 0; i < wayPoints.size(); i++) {
+            if (wayPoints.get(i).componentAlongPath(current) > 0) {
+                counter = i;
+                break;
+            }
+        }
+        //creating targetWayPoint for case where: the line is not vertical, the robot is passed WayPoint 0,
+        // and where the distance along path is less than the targetdistance.
+        // This case works for horizontal lines too.
+        if ((counter > 0) && (wayPoints.get(counter).getDeltaXFromPrevious() != 0) &&
+                (targetDistance < wayPoints.get(counter).componentAlongPath(current))) {
+            System.out.println("td< component along path, not vertical");
+
+            //The x and y coordinates of the two endpoints of the line.
+            double wP0X=wayPoints.get(counter-1).getPoint().getX();
+            double wP0Y=wayPoints.get(counter-1).getPoint().getY();
+            double wP1X=wayPoints.get(counter).getPoint().getX();
+            double wP1Y=wayPoints.get(counter).getPoint().getY();
+
+            System.out.println("current Point =" + current);
+            System.out.println("counter = " + counter);
+            System.out.println("wP0X = "+ wP0X);
+            System.out.println("wP0Y = "+ wP0Y);
+            System.out.println("wP1X = "+ wP1X);
+            System.out.println("wP1Y = "+ wP1Y);
+
+            //delta x and y from previous point.
+            double dxfp=wayPoints.get(counter).getDeltaXFromPrevious();
+            double dyfp=wayPoints.get(counter).getDeltaYFromPrevious();
+
+            System.out.println("dxfp, delta x from previous point = "+ dxfp);
+            System.out.println("dyfp = "+ dyfp);
+
+
+            //distance from previous point.
+            double dsfp=wayPoints.get(counter).getDistanceFromPrevious();
+            System.out.println("dsfp distance from previous point = "+ dsfp);
+
+            //calculating the distance from starting point of line to where the projection lands on the path.
+            double dtpop=dsfp - wayPoints.get(counter).componentAlongPath(current);
+            System.out.println("wayPoints.get(counter).componentAlongPath(current) = " + wayPoints.get(counter).componentAlongPath(current));
+            System.out.println("dtpop = " + dtpop);
+
+            //calculating the x and y coordinates of the projection on path (pop).
+            double popX=dtpop*Math.cos(Math.atan(dyfp/dxfp))+ wP0X;
+            double popY=dtpop*Math.sin(Math.atan(dyfp/dxfp))+ wP0Y;
+            System.out.println("popX = " + popX);
+            System.out.println("popY = " + popY);
+
+            //calculating the x and y coordinates of the targetPoint.
+            double tPX=targetDistance*Math.cos(Math.atan(dyfp/dxfp))+ popX;
+            double tPY=targetDistance*Math.sin(Math.atan(dyfp/dxfp))+ popY;
+            System.out.println("tPX = " + tPX);
+            System.out.println("tPY = " + tPY);
+
+
+            //creating a the Point targetPoint from tPX and tPY.
+            Point targetPoint = new Point(tPX,tPY);
+
+            //creating deltaX and deltaY from current to target point.
+            double dXTP=tPX-current.getX();
+            double dYTP=tPY-current.getY();
+
+
+            //creating distance from previous to targetPoint.
+            double dTP=Math.sqrt(dXTP*dXTP+dYTP*dYTP);
+
+            //creating targetWayPoint,
+            WayPoint targetWayPoint = new WayPoint(targetPoint, dXTP, dYTP, dTP);
+
+            return targetWayPoint;
+
+        }
+        //the case in which the line is vertical and the target distance is less
+        //than the component along path.
+        else if ((wayPoints.get(counter).getDeltaXFromPrevious() == 0) &&
+                (targetDistance < wayPoints.get(counter).componentAlongPath(current))){
+            System.out.println("vertical case, td<component along path");
+            //The x and y coordinates of the two endpoints of the line.
+            double wP0X=wayPoints.get(counter-1).getPoint().getX();
+            double wP0Y=wayPoints.get(counter-1).getPoint().getY();
+            double wP1X=wayPoints.get(counter).getPoint().getX();
+            double wP1Y=wayPoints.get(counter).getPoint().getY();
+
+            System.out.println("current Point =" + current);
+            System.out.println("counter = " + counter);
+            System.out.println("wP0X = "+ wP0X);
+            System.out.println("wP0Y = "+ wP0Y);
+            System.out.println("wP1X = "+ wP1X);
+            System.out.println("wP1Y = "+ wP1Y);
+
+            //delta x and y from previous point.
+            double dxfp=wayPoints.get(counter).getDeltaXFromPrevious();
+            double dyfp=wayPoints.get(counter).getDeltaYFromPrevious();
+
+            System.out.println("dxfp, delta x from previous point = "+ dxfp);
+            System.out.println("dyfp = "+ dyfp);
+
+
+            //distance from previous point.
+            double dsfp=wayPoints.get(counter).getDistanceFromPrevious();
+            System.out.println("dsfp distance from previous point = "+ dsfp);
+
+            //calculating the distance from starting point of line to where the projection lands on the path.
+            double dtpop=dsfp - wayPoints.get(counter).componentAlongPath(current);
+            System.out.println("wayPoints.get(counter).componentAlongPath(current) = " + wayPoints.get(counter).componentAlongPath(current));
+            System.out.println("dtpop = " + dtpop);
+
+            //calculating the x and y coordinates of the projection on path (pop).
+            //in this special case it assigns the value of WayPoint 0.x to the popX;
+            // it's on the same vertical line.
+            //Assinges popY the value of the y value of current.  It must be at the same
+            //height as current.
+            double popX=wP0X;
+            double popY= current.getY();
+            System.out.println("popX = " + popX);
+            System.out.println("popY = " + popY);
+
+            //calculating the x and y coordinates of the targetPoint.
+            // target x is is the same as path.x.
+            //target y is just popy plus distance to target.
+            double tPX=popX;
+            double tPY=targetDistance + popY;
+            System.out.println("tPX = " + tPX);
+            System.out.println("tPY = " + tPY);
+
+
+            //creating a the Point targetPoint from tPX and tPY.
+            Point targetPoint = new Point(tPX,tPY);
+
+            //creating deltaX and deltaY from current to target point.
+            double dXTP=tPX-current.getX();
+            double dYTP=tPY-current.getY();
+
+            //creating distance from previous to targetPoint.
+            double dTP=Math.sqrt(dXTP*dXTP+dYTP*dYTP);
+
+            //creating targetWayPoint,
+            WayPoint targetWayPoint = new WayPoint(targetPoint, dXTP, dYTP, dTP);
+
+            return targetWayPoint;
+        }
+
+        //The case where the target distance is larger than the component along path,
+        //and not a vertical line.  First we need to see which WayPoint we need to look at.
+        //This is done by creating a partialPathDist.  We keep adding to this distance successive
+        // distances from previous values until the
+        //the partialPathDist is larger than the target distance.  At the same time we are
+        //incrementing i so that we can keep track of which WayPoint is actually the one just beyond
+        // the targetDistance.
+        // The actual index of the WayPoint we end up on is counter + i.
+        //After identifying which Waypoint we need to use, we can do very similar math as the earlier cases,
+        //but we need to adjust which WayPoints to WayPoints.get(counter+i) and WayPoints.get((counter+i)-1).
+
+
+        else if ((wayPoints.get(counter).getDeltaXFromPrevious() != 0) &&
+                (targetDistance > wayPoints.get(counter).componentAlongPath(current))){
+            System.out.println("td > component along path");
+            double pathPartialDist=0;
+            int i=0;
+            while (targetDistance > pathPartialDist && counter<(wayPoints.size())){
+
+                pathPartialDist=wayPoints.get(counter).componentAlongPath(current)+wayPoints.get(counter+i).distanceFromPrevious;
+                i++;
+            }
+
+            //The x and y coordinates of the two endpoints of the line.
+            double wP0X=wayPoints.get((counter+i)-1).getPoint().getX();
+            double wP0Y=wayPoints.get((counter+i)-1).getPoint().getY();
+            double wP1X=wayPoints.get(counter+i).getPoint().getX();
+            double wP1Y=wayPoints.get(counter+i).getPoint().getY();
+
+            System.out.println("current Point =" + current);
+            System.out.println("counter = " + counter);
+            System.out.println("i = " +i);
+            System.out.println("wP0X = "+ wP0X);
+            System.out.println("wP0Y = "+ wP0Y);
+            System.out.println("wP1X = "+ wP1X);
+            System.out.println("wP1Y = "+ wP1Y);
+
+            //delta x and y from previous point.
+            double dxfp=wayPoints.get(counter +i).getDeltaXFromPrevious();
+            double dyfp=wayPoints.get(counter +i).getDeltaYFromPrevious();
+
+            System.out.println("dxfp, delta x from previous point = "+ dxfp);
+            System.out.println("dyfp = "+ dyfp);
+
+            //distance from previous point.
+            double dsfp=wayPoints.get(counter +i).getDistanceFromPrevious();
+            System.out.println("dsfp distance from previous point = "+ dsfp);
+
+            //calculating the distance from WayPoints.get(counter+i-1) to where targetDistance lands
+            //on the path.
+
+            double extraDistance = pathPartialDist-targetDistance;
+            double remainingDistance=wayPoints.get(counter+1).distanceFromPrevious-extraDistance;
+            System.out.println("partialPathDistance = " + pathPartialDist);
+            System.out.println("targetDistance = " + targetDistance);
+            System.out.println("remainingDistance = " + remainingDistance);
+
+            //final line is vertical
+            if (dxfp==0){
+                System.out.println("targetDistance > component Along path and final line is vertical,");
+
+                //calculating the x and y coordinates of the targetPoint.
+                //
+                // projection on path (pop).
+                //in this special case it assigns the value of WayPoint 0.x to the tPX;
+                // it's on the same vertical line.
+                //Assinges remaining distance plus wP0Y.
+
+                double tPX=wP0X;
+                double tPY=remainingDistance + wP0Y;
+                System.out.println("tPX = " + tPX);
+                System.out.println("tPY = " + tPY);
+
+
+                //creating a the Point targetPoint from tPX and tPY.
+                Point targetPoint = new Point(tPX,tPY);
+
+                //creating deltaX and deltaY from current to target point.
+                double dXTP=tPX-current.getX();
+                double dYTP=tPY-current.getY();
+
+                //creating distance from current to targetPoint.
+                double dTP=Math.sqrt(dXTP*dXTP+dYTP*dYTP);
+
+                //creating targetWayPoint,
+                WayPoint targetWayPoint = new WayPoint(targetPoint, dXTP, dYTP, dTP);
+
+                return targetWayPoint;
+                /*
+                Point errorPoint = new Point (0,0);
+                WayPoint targetWayPoint = new WayPoint(errorPoint, 0, 0, 0);
+                System.out.println("counter = " + counter);
+                System.out.println("componentAlongPath(current) = "+ wayPoints.get(counter).componentAlongPath(current));
+
+                return targetWayPoint;
+
+                 */
+            }
+            else {
+                //if the final line is not vertical
+                System.out.println("final line is not vertical and target distance is more than componentAlongPath");
+
+
+                //non coordinates of the projection onto the path are needed in this case.
+                //calculating the x and y coordinates of the targetPoint.
+                double tPX=remainingDistance*Math.cos(Math.atan(dyfp/dxfp))+ wP0X;
+                double tPY=remainingDistance*Math.sin(Math.atan(dyfp/dxfp))+ wP0Y;
+                System.out.println("tPX = " + tPX);
+                System.out.println("tPY = " + tPY);
+
+                //creating a the Point targetPoint from tPX and tPY.
+                Point targetPoint = new Point(tPX,tPY);
+
+                //creating deltaX and deltaY from current to target point.
+                double dXTP=tPX-current.getX();
+                double dYTP=tPY-current.getY();
+
+                //creating distance from previous to targetPoint.
+                double dTP=Math.sqrt(dXTP*dXTP+dYTP*dYTP);
+
+                //creating targetWayPoint,
+                WayPoint targetWayPoint = new WayPoint(targetPoint, dXTP, dYTP, dTP);
+
+                return targetWayPoint;
+
+
+            }
+
+        }
+
+
+
+        else{
+            Point errorPoint = new Point (0,0);
+            WayPoint targetWayPoint = new WayPoint(errorPoint, 0, 0, 0);
+            System.out.println("counter = " + counter);
+            System.out.println("componentAlongPath(current) = "+ wayPoints.get(counter).componentAlongPath(current));
+
+            return targetWayPoint;
+        }
+
+
+    }
+
+
+
         //this is a call to the constructor of WayPoint.  What is odd is that this call does not
         //seem to be passing the correct parameters to the constructor.  The call starts well by
         //calling the constructor of Point, creating a Point, and then passing it to the WayPoint constructor.
@@ -101,7 +394,19 @@ public class Path {
             this.distanceFromPrevious = distanceFromPrevious;
         }
 
-        /**
+            public double getDeltaXFromPrevious() {
+                return deltaXFromPrevious;
+            }
+
+            public double getDeltaYFromPrevious() {
+                return deltaYFromPrevious;
+            }
+
+            public Point getPoint() {
+                return point;
+            }
+
+            /**
          * Calculates the projection of the vector Vcurrent leading from the supplied current
          * point to this WayPoint onto the vector Vpath leading from the previous point on the path
          * to this WayPoint.  If the return value is positive, it means that the WayPoint is
@@ -125,10 +430,20 @@ public class Path {
          */
         private double componentAlongPath(Point current) {
             double deltaXFromCurrent = point.getX() - current.getX();
+            //System.out.println("componentAlongPath INFO");
+            //System.out.println("deltaXFromCurrent = " + deltaXFromCurrent);
+
             double deltaYFromCurrent = point.getY() - current.getY();
+            //System.out.println("deltaYFromCurrent = " + deltaYFromCurrent);
+
 
             double dp = deltaXFromCurrent * deltaXFromPrevious + deltaYFromCurrent * deltaYFromPrevious;
+
+            //System.out.println("dp = " + dp);
+            //System.out.println("distanceFromPrevious" + distanceFromPrevious);
+            //System.out.println("dp/distanceFromPrevious = " + dp/distanceFromPrevious);
             return dp / distanceFromPrevious;
+
 
         }
 

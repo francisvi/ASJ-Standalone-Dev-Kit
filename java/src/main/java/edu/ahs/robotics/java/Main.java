@@ -41,7 +41,13 @@ public class Main {
                 new Point (0,0),
                 new Point (3,4),
                 new Point (3,4),
-                new Point (5,5),
+                new Point (11,8),
+                new Point (11, 15),
+                new Point (17,15),
+                new Point (23, 19),
+                new Point (30, 20),
+                new Point (40, 25),
+                new Point (7,3),
                 new Point (0,0)};
         //calls the constructor of the Path array, passing the rawPoints array.
         Path myPath= new Path (rawPoints);
@@ -60,13 +66,19 @@ public class Main {
         for (int i=0; i<myPath.getWayPoints().size(); i++){
             System.out.println(myPath.getWayPoints().get(i).point);
         }
+        Point robotCurrentLocation = new Point (9,10);
+        System.out.println("TargetPoint is = " + myPath.targetPoint(robotCurrentLocation, 2).point);
 
+        /*
         System.out.println("the total distance of my path = " + myPath.totalDistance());
 
+        //test of interpolation method of LineSegment
         Point pointA = new Point (3,2);
-        Point pointB = new Point (15,8);
+        Point pointB = new Point (3,8);
         LineSegment l1 = new LineSegment(pointA,pointB);
-        System.out.println (l1.interpolate(7));
+        System.out.println (l1.interpolate(5));
+
+         */
 
 
     }
