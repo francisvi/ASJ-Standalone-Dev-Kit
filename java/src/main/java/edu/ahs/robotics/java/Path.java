@@ -23,7 +23,7 @@ public class Path {
         double deltaYFromPrevious=0;
         double distanceFromPrevious=0;
 
-        //loops through the array Points passed to the Path constructor.  Each Point in the array,
+        //loops through the array rawPoints passed to the Path constructor.  Each Point in the array,
         //is passed to Waypoint constructor.  The zeroth element gets special treatment because
         //there is no previous element from which to take a difference.
         for (int i=0; i<rawPoints.length; i++){
@@ -81,6 +81,8 @@ public class Path {
         //along path for the current point is a positive number.  Any points behind the
         //robot will have negative componentAlongPath values.
     public Path.WayPoint targetPoint(Point current, double targetDistance) {
+
+        // counter needs to function in such a way that the robot can follow paths that loop back.  Make the scope glogal.
         int counter = 0;
         for (int i = 0; i < wayPoints.size(); i++) {
             if (wayPoints.get(i).componentAlongPath(current) > 0) {
@@ -126,14 +128,14 @@ public class Path {
             System.out.println("dtpop = " + dtpop);
 
             //calculating the x and y coordinates of the projection on path (pop).
-            double popX=dtpop*Math.cos(Math.atan(dyfp/dxfp))+ wP0X;
-            double popY=dtpop*Math.sin(Math.atan(dyfp/dxfp))+ wP0Y;
+            double popX=dtpop*Math.cos(Math.atan2(dyfp,dxfp))+ wP0X;
+            double popY=dtpop*Math.sin(Math.atan2(dyfp,dxfp))+ wP0Y;
             System.out.println("popX = " + popX);
             System.out.println("popY = " + popY);
 
             //calculating the x and y coordinates of the targetPoint.
-            double tPX=targetDistance*Math.cos(Math.atan(dyfp/dxfp))+ popX;
-            double tPY=targetDistance*Math.sin(Math.atan(dyfp/dxfp))+ popY;
+            double tPX=targetDistance*Math.cos(Math.atan2(dyfp,dxfp))+ popX;
+            double tPY=targetDistance*Math.sin(Math.atan2(dyfp,dxfp))+ popY;
             System.out.println("tPX = " + tPX);
             System.out.println("tPY = " + tPY);
 
@@ -240,17 +242,32 @@ public class Path {
         else if ((wayPoints.get(counter).getDeltaXFromPrevious() != 0) &&
                 (targetDistance > wayPoints.get(counter).componentAlongPath(current))){
             System.out.println("td > component along path");
-            double pathPartialDist=0;
+            double pathPartialDist=wayPoints.get(counter).componentAlongPath(current);
             int i=0;
+            //adds up the path distance from pop to where target distance lands on the path.
             while (targetDistance > pathPartialDist && counter<(wayPoints.size())){
-
-                pathPartialDist=wayPoints.get(counter).componentAlongPath(current)+wayPoints.get(counter+i).distanceFromPrevious;
                 i++;
+                //if the target point travels past the final waypoint, we are in danger of calling an element in the
+                //arrayList that is out of range.  This takes care of that by making the final Waypoint the TargetWayPoint
+                //if this occurs.
+                if (counter > wayPoints.size()-1 || (counter+i) > wayPoints.size()-1){
+
+                    double dXTP=wayPoints.get(wayPoints.size()-1).getPoint().getX()-current.getX();
+                    double dYTP=wayPoints.get(wayPoints.size()-1).getPoint().getY()-current.getY();
+                    double dTP= Math.sqrt(dXTP*dXTP+dYTP*dYTP);
+                    WayPoint targetWayPoint = new WayPoint(wayPoints.get(wayPoints.size()-1).point, dXTP , dYTP, dTP);
+                    return targetWayPoint;
+
+                }
+                pathPartialDist= pathPartialDist + wayPoints.get((counter+i)).distanceFromPrevious;
+                System.out.println("pathPartialDist = " + pathPartialDist);
+                System.out.println(counter+i);
             }
 
-            //The x and y coordinates of the two endpoints of the line.
-            double wP0X=wayPoints.get((counter+i)-1).getPoint().getX();
-            double wP0Y=wayPoints.get((counter+i)-1).getPoint().getY();
+
+            //The x and y coordinates of the two endpoints of the final line.
+            double wP0X=wayPoints.get(counter+i-1).getPoint().getX();
+            double wP0Y=wayPoints.get(counter+i-1).getPoint().getY();
             double wP1X=wayPoints.get(counter+i).getPoint().getX();
             double wP1Y=wayPoints.get(counter+i).getPoint().getY();
 
@@ -261,8 +278,9 @@ public class Path {
             System.out.println("wP0Y = "+ wP0Y);
             System.out.println("wP1X = "+ wP1X);
             System.out.println("wP1Y = "+ wP1Y);
+            System.out.println("wayPoints.get(counter).componentAlongPath(current) = " + wayPoints.get(counter).componentAlongPath(current));
 
-            //delta x and y from previous point.
+            //delta x and y from previous point for final segment.
             double dxfp=wayPoints.get(counter +i).getDeltaXFromPrevious();
             double dyfp=wayPoints.get(counter +i).getDeltaYFromPrevious();
 
@@ -277,8 +295,8 @@ public class Path {
             //on the path.
 
             double extraDistance = pathPartialDist-targetDistance;
-            double remainingDistance=wayPoints.get(counter+1).distanceFromPrevious-extraDistance;
-            System.out.println("partialPathDistance = " + pathPartialDist);
+            double remainingDistance=wayPoints.get(counter+i).distanceFromPrevious-extraDistance;
+            System.out.println("pathPartialDist = " + pathPartialDist);
             System.out.println("targetDistance = " + targetDistance);
             System.out.println("remainingDistance = " + remainingDistance);
 
@@ -330,8 +348,8 @@ public class Path {
 
                 //non coordinates of the projection onto the path are needed in this case.
                 //calculating the x and y coordinates of the targetPoint.
-                double tPX=remainingDistance*Math.cos(Math.atan(dyfp/dxfp))+ wP0X;
-                double tPY=remainingDistance*Math.sin(Math.atan(dyfp/dxfp))+ wP0Y;
+                double tPX=remainingDistance*Math.cos(Math.atan2(dyfp, dxfp))+ wP0X;
+                double tPY=remainingDistance*Math.sin(Math.atan2(dyfp, dxfp))+ wP0Y;
                 System.out.println("tPX = " + tPX);
                 System.out.println("tPY = " + tPY);
 
@@ -352,6 +370,7 @@ public class Path {
 
 
             }
+
 
         }
 
